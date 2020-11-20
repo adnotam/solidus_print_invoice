@@ -1,51 +1,24 @@
-ENV["RAILS_ENV"] ||= "test"
+# frozen_string_literal: true
 
-require File.expand_path("../dummy/config/environment.rb", __FILE__)
+# Configure Rails Environment
+ENV['RAILS_ENV'] = 'test'
 
-require "rspec/rails"
-require 'capybara/poltergeist'
-require 'capybara-screenshot/rspec'
-require 'database_cleaner'
-require 'factory_bot_rails'
-require 'ffaker'
-require 'pry'
+# Run Coverage report
+require 'solidus_dev_support/rspec/coverage'
 
-require 'spree/testing_support/factories'
+require File.expand_path('dummy/config/environment.rb', __dir__)
 
-unless ENV['USE_SELENIUM']
-  Capybara.register_driver :poltergeist do |app|
-    Capybara::Poltergeist::Driver.new(app, timeout: 60)
-  end
-  Capybara.javascript_driver = :poltergeist
-end
+# Requires factories and other useful helpers defined in spree_core.
+require 'solidus_dev_support/rspec/feature_helper'
 
-Dir[File.join(File.dirname(__FILE__), "support/**/*.rb")].each { |f| require f }
+# Requires supporting ruby files with custom matchers and macros, etc,
+# in spec/support/ and its subdirectories.
+Dir[File.join(File.dirname(__FILE__), 'support/**/*.rb')].each { |f| require f }
+
+# Requires factories defined in lib/solidus_print_invoice/factories.rb
+require 'solidus_print_invoice/factories'
 
 RSpec.configure do |config|
-  config.include Capybara::DSL, type: :feature
   config.infer_spec_type_from_file_location!
-
-  config.filter_run :focus
-  config.run_all_when_everything_filtered = true
   config.use_transactional_fixtures = false
-  config.example_status_persistence_file_path = "tmp/failed_examples.txt"
-  config.disable_monkey_patching!
-
-  config.before(:suite) do
-    DatabaseCleaner.clean_with(:truncation)
-  end
-
-  config.before(:each) do
-    if RSpec.current_example.metadata[:js]
-      DatabaseCleaner.strategy = :truncation
-    else
-      DatabaseCleaner.strategy = :transaction
-    end
-
-    DatabaseCleaner.start
-  end
-
-  config.after(:each) do
-    DatabaseCleaner.clean
-  end
 end

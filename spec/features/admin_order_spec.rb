@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
-RSpec.feature "Print Invoice button", js: true do
-  given!(:order) { FactoryBot.create(:completed_order_with_totals) }
-  given(:user) { FactoryBot.create(:admin_user, password: "boxen1011") }
+RSpec.describe "Print Invoice button", js: true do
+  let!(:order) { FactoryBot.create(:completed_order_with_totals) }
+  let(:user) { FactoryBot.create(:admin_user, password: "boxen1011") }
 
-  scenario "it displays a print invoice button on order pages" do
+  it "displays a print invoice button on order pages" do
     visit spree.admin_path
 
     fill_in "Email", with: user.email
@@ -13,9 +15,6 @@ RSpec.feature "Print Invoice button", js: true do
 
     click_link order.number
 
-    within(".page-actions") do
-      print_button = find("a", text: /Print Invoice/i)
-      expect(URI(print_button[:href]).path).to eql(spree.admin_order_path(order, :pdf))
-    end
+    expect(page).to have_link('Print Invoice', href: spree.admin_order_path(order, :pdf, template: 'invoice'))
   end
 end
